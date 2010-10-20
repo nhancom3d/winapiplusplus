@@ -1,0 +1,18 @@
+CPP_FILES=WinAPI++.cpp
+
+CPP_COMPILER=cl
+
+ALL : rs_staticlibrary
+
+clean :
+	-@erase *.obj
+	-@erase *.pch
+
+makepch_rs_staticlibrary :
+	$(CPP_COMPILER) /O2 /Ob2 /Oi /Ot /Oy /GF /Gy /GS- /GR /EHsc /fp:fast /GT /Fp"WinAPI++.pch" /Zc:forScope /c /MP4 /nologo /W4 /Yc"stdafx.h" /MT /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "WINAPIPP_STATICLIB" /D "STRICT" /D "_CRT_SECURE_NO_WARNINGS" /D "_MBCS" stdafx.cpp
+
+.cpp.obj :
+	$(CPP_COMPILER) /O2 /Ob2 /Oi /Ot /Oy /GF /Gy /GS- /GR /EHsc /fp:fast /GT /Fp"WinAPI++.pch" /Zc:forScope /c /MP4 /nologo /W4 /Yu"stdafx.h" /MT /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "WINAPIPP_STATICLIB" /D "STRICT" /D "_CRT_SECURE_NO_WARNINGS" /D "_MBCS" $<
+
+rs_staticlibrary : makepch_rs_staticlibrary $(CPP_FILES:.cpp=.obj)
+	lib /MACHINE:X86 /NOLOGO /OUT:WinAPI++.lib $(CPP_FILES:.cpp=.obj)

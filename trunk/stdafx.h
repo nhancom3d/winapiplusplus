@@ -19,11 +19,17 @@
 
 #include "targetver.h"
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-
 // Windows Header Files:
 
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define STRSAFE_NO_DEPRECATE
+
 #include <windows.h>
+#include <strsafe.h>
+
+// Standard C Header Files:
+
+#include <stdarg.h>
 
 // Standard C++ Header Files:
 
