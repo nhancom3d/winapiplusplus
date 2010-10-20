@@ -17,13 +17,9 @@
 #ifndef _TARGET_VER_H_
 #define _TARGET_VER_H_
 
-// Including SDKDDKVer.h defines the highest available Windows platform.
+#define _WIN32_WINNT 0x0502
+#define _WIN32_WINDOWS 0x0490
+#define _WIN32_IE 0x0600
+#define WINVER _WIN32_WINNT
 
-// If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
-// set the _WIN32_WINNT macro to the platform you wish to support before including SDKDDKVer.h.
-
-#include <winsdkver.h>
-#define _WIN32_WINNT 0x0502 // Windows XP SP1
-#include <SDKDDKVer.h>
-
-#endif /* _TARGET_VER_H_ */
+#endif // _TARGET_VER_H_

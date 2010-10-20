@@ -39,6 +39,17 @@ namespace WinApiPP
 		ERRORCODE_WINDOWS_ERROR
 	};
 
+	// WinAPI++ Return struct. Must 64 bits structure.
+	struct BASERET
+	{
+		ERRORCODE LibError;
+	};
+
+	struct RETINT : BASERET
+	{
+		int nRetVal;
+	};
+
 	namespace KERNEL32
 	{
 		// Save Windows SDK Macro
@@ -53,6 +64,18 @@ namespace WinApiPP
 
 		// Restore Windows SDK Macro
 #pragma pop_macro("GetLastError")
+	}
+
+	namespace USER32
+	{
+		enum MESSAGEBOXFORMAT
+		{
+			MESSAGEBOXFORMAT_TEXT,
+			MESSAGEBOXFORMAT_CAPTION
+		};
+
+		WINAPIPP_API RETINT __cdecl MessageBox(HWND hWnd, const char *pszText, const char *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw();
+		WINAPIPP_API RETINT __cdecl MessageBox(HWND hWnd, const wchar_t *pszText, const wchar_t *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw();
 	}
 }
 
