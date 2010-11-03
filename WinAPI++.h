@@ -52,18 +52,9 @@ namespace WinApiPP
 
 	namespace KERNEL32
 	{
-		// Save Windows SDK Macro
-#pragma push_macro("GetLastError")
-
-		// Destroy Windows SDK Macro
-#undef GetLastError
-
 		// Declaration Function
 		WINAPIPP_API ERRORCODE WINAPI GetLastError(std::string& strError, DWORD dwError = ::GetLastError()) throw();
 		WINAPIPP_API ERRORCODE WINAPI GetLastError(std::wstring& strError, DWORD dwError = ::GetLastError()) throw();
-
-		// Restore Windows SDK Macro
-#pragma pop_macro("GetLastError")
 	}
 
 	namespace USER32
@@ -74,8 +65,11 @@ namespace WinApiPP
 			MESSAGEBOXFORMAT_CAPTION
 		};
 
+#pragma push_macro("MessageBox")
+#undef MessageBox
 		WINAPIPP_API RETINT __cdecl MessageBox(HWND hWnd, const char *pszText, const char *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw();
 		WINAPIPP_API RETINT __cdecl MessageBox(HWND hWnd, const wchar_t *pszText, const wchar_t *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw();
+#pragma pop_macro("MessageBox")
 	}
 }
 
