@@ -87,6 +87,8 @@ namespace WinApiPP
 
 	namespace USER32
 	{
+#undef MessageBox
+
 		RETINT __cdecl MessageBox(HWND hWnd, const char *pszText, const char *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw()
 		{
 			RETINT Ret;
