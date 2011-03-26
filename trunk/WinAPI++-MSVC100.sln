@@ -6,13 +6,13 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		[R][S] Static Library|Win32 = [R][S] Static Library|Win32
-		Debug|Win32 = Debug|Win32
+		Debug SLL|Win32 = Debug SLL|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{CAB926BF-E0C5-4DF6-A69C-42F2DD26A4AF}.[R][S] Static Library|Win32.ActiveCfg = [R][S] Static Library|Win32
 		{CAB926BF-E0C5-4DF6-A69C-42F2DD26A4AF}.[R][S] Static Library|Win32.Build.0 = [R][S] Static Library|Win32
-		{CAB926BF-E0C5-4DF6-A69C-42F2DD26A4AF}.Debug|Win32.ActiveCfg = [R][S] Static Library|Win32
-		{CAB926BF-E0C5-4DF6-A69C-42F2DD26A4AF}.Debug|Win32.Build.0 = [R][S] Static Library|Win32
+		{CAB926BF-E0C5-4DF6-A69C-42F2DD26A4AF}.Debug SLL|Win32.ActiveCfg = Debug SLL|Win32
+		{CAB926BF-E0C5-4DF6-A69C-42F2DD26A4AF}.Debug SLL|Win32.Build.0 = Debug SLL|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
