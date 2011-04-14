@@ -18,61 +18,35 @@
 #define _WINAPIPP_H_
 
 #ifndef __cplusplus
-#error WinAPI++ Must be using in C++ Project
+	#error WinAPI++ Must be using in C++ Project
 #endif
 
 #if defined(WINAPIPP_EXPORT)
-#define WINAPIPP_API __declspec(dllexport)
+	#define WINAPIPP_API __declspec(dllexport)
 #elif defined(WINAPIPP_STATICLIB)
-#define WINAPIPP_API
+	#define WINAPIPP_API
 #else
-#define WINAPIPP_API __declspec(dllimport)
+	#define WINAPIPP_API __declspec(dllimport)
 #endif
 
 #include <string>
+#include <stdarg.h>
 
 namespace WinApiPP
 {
-	// WinAPI++ Error Code
-	enum ERRORCODE
-	{
-		ERRORCODE_SUCCESS,
-		ERRORCODE_INVALID_PARAMETER,
-		ERRORCODE_WINDOWS_ERROR
-	};
-
-	// WinAPI++ Return struct. Must 64 bits structure.
-	struct BASERET
-	{
-		ERRORCODE LibError;
-	};
-
-	struct RETINT : BASERET
-	{
-		int nRetVal;
-	};
-
 	namespace KERNEL32
 	{
-		// Declaration Function
 		WINAPIPP_API DWORD WINAPI GetLastError(std::string& strError, DWORD dwError = ::GetLastError()) throw();
 		WINAPIPP_API DWORD WINAPI GetLastError(std::wstring& strError, DWORD dwError = ::GetLastError()) throw();
 	}
 
 	namespace USER32
 	{
-		enum MESSAGEBOXFORMAT
-		{
-			MESSAGEBOXFORMAT_TEXT,
-			MESSAGEBOXFORMAT_CAPTION
-		};
-
-#pragma push_macro("MessageBox")
-#undef MessageBox
-		WINAPIPP_API RETINT __cdecl MessageBox(HWND hWnd, const char *pszText, const char *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw();
-		WINAPIPP_API RETINT __cdecl MessageBox(HWND hWnd, const wchar_t *pszText, const wchar_t *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw();
-#pragma pop_macro("MessageBox")
+		WINAPIPP_API int __cdecl MessageBoxA(const char *pszText, const char *pszCaption, va_list args, UINT uType = MB_OK, HWND hWnd = ::GetActiveWindow()) throw();
+		WINAPIPP_API int __cdecl MessageBoxW(const wchar_t *pszText, const wchar_t *pszCaption, va_list args, UINT uType = MB_OK, HWND hWnd = ::GetActiveWindow()) throw();
+		WINAPIPP_API int __cdecl MessageBoxA(const char *pszText, const char *pszCaption, UINT uType = MB_OK, HWND hWnd = ::GetActiveWindow(), ...) throw();
+		WINAPIPP_API int __cdecl MessageBoxW(const wchar_t *pszText, const wchar_t *pszCaption, UINT uType = MB_OK, HWND hWnd = ::GetActiveWindow(), ...) throw();
 	}
 }
 
-#endif /* WINAPIPP_H_ */
+#endif // WINAPIPP_H_

@@ -35,10 +35,25 @@ namespace WinApiPP
 			// Load Error Message
 			if (::FormatMessageA(FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dwError, 0, reinterpret_cast<char *>(&pszError), 256, NULL))
 			{
-				strError = pszError;
+				try
+				{
+					strError = pszError;
+					dwError = ERROR_SUCCESS;
+				}
+				catch (std::bad_alloc)
+				{
+					dwError = ERROR_NOT_ENOUGH_MEMORY;
+				}
+				catch (...)
+				{
+					// Assume it is access violation.
+					dwError = ERROR_INVALID_PARAMETER;
+				}
+
+				// Free resource
 				::LocalFree(pszError);
 
-				return ERROR_SUCCESS;
+				return dwError;
 			}
 			else
 				return ::GetLastError();
@@ -54,10 +69,25 @@ namespace WinApiPP
 
 			if (::FormatMessageW(FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dwError, 0, reinterpret_cast<wchar_t *>(&pszError), 256, NULL))
 			{
-				strError = pszError;
+				try
+				{
+					strError = pszError;
+					dwError = ERROR_SUCCESS;
+				}
+				catch (std::bad_alloc)
+				{
+					dwError = ERROR_NOT_ENOUGH_MEMORY;
+				}
+				catch (...)
+				{
+					// Assume it is access violation.
+					dwError = ERROR_INVALID_PARAMETER;
+				}
+
+				// Free resource
 				::LocalFree(pszError);
 
-				return ERROR_SUCCESS;
+				return dwError;
 			}
 			else
 				return ::GetLastError();
@@ -70,150 +100,152 @@ namespace WinApiPP
 
 	namespace USER32
 	{
-#undef MessageBox
-
-		RETINT __cdecl MessageBox(HWND hWnd, const char *pszText, const char *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw()
+		int __cdecl MessageBoxA(const char *pszText, const char *pszCaption, va_list args, UINT uType, HWND hWnd) throw()
 		{
-			RETINT Ret;
-			va_list args;
-			char *pszFormatted = NULL;
+			char *pszFormatted;
 			size_t uBufSize;
-			
-			::memset(&Ret, 0, sizeof(Ret));
-			
-			switch (Format)
+			int nRet;
+
+			// Calculate buffer size
+			__try
 			{
-			case MESSAGEBOXFORMAT_TEXT:
-				if (!pszText)
-				{
-					Ret.LibError = ERRORCODE_INVALID_PARAMETER;
-					return Ret;
-				}
-				
-				uBufSize = strlen(pszText) << 1;
-				pszFormatted = new char [uBufSize];
-				
-				va_start(args, Format);
-				while (StringCchVPrintfA(pszFormatted, uBufSize, pszText, args) != S_OK)
-				{
-					// Assume the error is STRSAFE_E_INSUFFICIENT_BUFFER
-					uBufSize <<= 1;
-					
-					delete[] pszFormatted;
-					
-					pszFormatted = new char [uBufSize];
-				}
-				va_end(args);
-				break;
-			case MESSAGEBOXFORMAT_CAPTION:
-				if (!pszCaption)
-				{
-					Ret.LibError = ERRORCODE_INVALID_PARAMETER;
-					return Ret;
-				}
-				
-				uBufSize = strlen(pszCaption) << 1;
-				pszFormatted = new char [uBufSize];
-				
-				va_start(args, Format);
-				while (StringCchVPrintfA(pszFormatted, uBufSize, pszCaption, args) != S_OK)
-				{
-					// Assume the error is STRSAFE_E_INSUFFICIENT_BUFFER
-					uBufSize <<= 1;
-					
-					delete[] pszFormatted;
-					
-					pszFormatted = new char [uBufSize];
-				}
-				va_end(args);
-				break;
-			default:
-				Ret.LibError = ERRORCODE_INVALID_PARAMETER;
-				return Ret;
+				uBufSize = ::strlen(pszText) * 2;
 			}
-			
-			// Show message box
-			if (MESSAGEBOXFORMAT_TEXT == Format)
-				Ret.nRetVal = MessageBoxA(hWnd, pszFormatted, pszCaption, uType);
-			else
-				Ret.nRetVal = MessageBoxA(hWnd, pszText, pszFormatted, uType);
-			
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+				// pszText is not valid pointer.
+				::SetLastError(ERROR_INVALID_PARAMETER);
+				return 0;
+			}
+
+			// Alloc buffer
+			pszFormatted = reinterpret_cast<char *>(calloc(uBufSize, sizeof(char)));
+
+			if (!pszFormatted)
+			{
+				::SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+				return 0;
+			}
+
+			// Format message
+			__try
+			{
+				while (FAILED(StringCchVPrintfA(pszFormatted, uBufSize, pszText, args)))
+				{
+					// Assume the error is STRSAFE_E_INSUFFICIENT_BUFFER
+					uBufSize *= 2;
+
+					::free(pszFormatted);
+
+					pszFormatted = reinterpret_cast<char *>(calloc(uBufSize, sizeof(char)));
+
+					if (!pszFormatted)
+					{
+						::SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+						return 0;
+					}
+				}
+			}
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+				::free(pszFormatted);
+				::SetLastError(ERROR_INVALID_PARAMETER);
+				return 0;
+			}
+
+			// Show Message Box
+			nRet = ::MessageBoxA(hWnd, pszFormatted, pszCaption, uType);
+
 			// Clean up
-			delete[] pszFormatted;
-			
-			return Ret;
+			::free(pszFormatted);
+
+			return nRet;
+		}
+
+		int __cdecl MessageBoxW(const wchar_t *pszText, const wchar_t *pszCaption, va_list args, UINT uType, HWND hWnd) throw()
+		{
+			wchar_t *pszFormatted;
+			size_t uBufSize;
+			int nRet;
+
+			// Calculate buffer size
+			__try
+			{
+				uBufSize = ::wcslen(pszText) * 2;
+			}
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+				// pszText is not valid pointer.
+				::SetLastError(ERROR_INVALID_PARAMETER);
+				return 0;
+			}
+
+			// Alloc buffer
+			pszFormatted = reinterpret_cast<wchar_t *>(calloc(uBufSize, sizeof(wchar_t)));
+
+			if (!pszFormatted)
+			{
+				::SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+				return 0;
+			}
+
+			// Format message
+			__try
+			{
+				while (FAILED(StringCchVPrintfW(pszFormatted, uBufSize, pszText, args)))
+				{
+					// Assume the error is STRSAFE_E_INSUFFICIENT_BUFFER
+					uBufSize *= 2;
+
+					::free(pszFormatted);
+
+					pszFormatted = reinterpret_cast<wchar_t *>(calloc(uBufSize, sizeof(wchar_t)));
+
+					if (!pszFormatted)
+					{
+						::SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+						return 0;
+					}
+				}
+			}
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+				::free(pszFormatted);
+				::SetLastError(ERROR_INVALID_PARAMETER);
+				return 0;
+			}
+
+			// Show Message Box
+			nRet = ::MessageBoxW(hWnd, pszFormatted, pszCaption, uType);
+
+			// Clean up
+			::free(pszFormatted);
+
+			return nRet;
+		}
+
+		int __cdecl MessageBoxA(const char *pszText, const char *pszCaption, UINT uType, HWND hWnd, ...) throw()
+		{
+			va_list args;
+			int nRet;
+
+			va_start(args, hWnd);
+			nRet = MessageBoxA(pszText, pszCaption, args, uType, hWnd);
+			va_end(args);
+
+			return nRet;
 		}
 		
-		RETINT __cdecl MessageBox(HWND hWnd, const wchar_t *pszText, const wchar_t *pszCaption, UINT uType, MESSAGEBOXFORMAT Format, ...) throw()
+		int __cdecl MessageBoxW(const wchar_t *pszText, const wchar_t *pszCaption, UINT uType, HWND hWnd, ...) throw()
 		{
-			RETINT Ret;
 			va_list args;
-			wchar_t *pszFormatted = NULL;
-			size_t uBufSize;
-			
-			::memset(&Ret, 0, sizeof(Ret));
-			
-			switch (Format)
-			{
-			case MESSAGEBOXFORMAT_TEXT:
-				if (!pszText)
-				{
-					Ret.LibError = ERRORCODE_INVALID_PARAMETER;
-					return Ret;
-				}
-				
-				uBufSize = wcslen(pszText) << 1;
-				pszFormatted = new wchar_t [uBufSize];
-				
-				va_start(args, Format);
-				while (StringCchVPrintfW(pszFormatted, uBufSize, pszText, args) != S_OK)
-				{
-					// Assume the error is STRSAFE_E_INSUFFICIENT_BUFFER
-					uBufSize <<= 1;
-					
-					delete[] pszFormatted;
-					
-					pszFormatted = new wchar_t [uBufSize];
-				}
-				va_end(args);
-				break;
-			case MESSAGEBOXFORMAT_CAPTION:
-				if (!pszCaption)
-				{
-					Ret.LibError = ERRORCODE_INVALID_PARAMETER;
-					return Ret;
-				}
-				
-				uBufSize = wcslen(pszCaption) << 1;
-				pszFormatted = new wchar_t [uBufSize];
-				
-				va_start(args, Format);
-				while (StringCchVPrintfW(pszFormatted, uBufSize, pszCaption, args) != S_OK)
-				{
-					// Assume the error is STRSAFE_E_INSUFFICIENT_BUFFER
-					uBufSize <<= 1;
-					
-					delete[] pszFormatted;
-					
-					pszFormatted = new wchar_t [uBufSize];
-				}
-				va_end(args);
-				break;
-			default:
-				Ret.LibError = ERRORCODE_INVALID_PARAMETER;
-				return Ret;
-			}
-			
-			// Show message box
-			if (MESSAGEBOXFORMAT_TEXT == Format)
-				Ret.nRetVal = MessageBoxW(hWnd, pszFormatted, pszCaption, uType);
-			else
-				Ret.nRetVal = MessageBoxW(hWnd, pszText, pszFormatted, uType);
-			
-			// Clean up
-			delete[] pszFormatted;
-			
-			return Ret;
+			int nRet;
+
+			va_start(args, hWnd);
+			nRet = MessageBoxW(pszText, pszCaption, args, uType, hWnd);
+			va_end(args);
+
+			return nRet;
 		}
 	}
 }
