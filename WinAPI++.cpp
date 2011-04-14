@@ -24,60 +24,43 @@ namespace WinApiPP
 	//////////////////////////////////////////////////////////////////////
 	namespace KERNEL32
 	{
-		ERRORCODE WINAPI GetLastError(std::string& strError, DWORD dwError) throw()
+		DWORD WINAPI GetLastError(std::string& strError, DWORD dwError) throw()
 		{
 			char *pszError;
 
+			// Parameter Check
 			if (!&strError)
-				return ERRORCODE_INVALID_PARAMETER;
+				return ERROR_INVALID_PARAMETER;
 
+			// Load Error Message
 			if (::FormatMessageA(FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dwError, 0, reinterpret_cast<char *>(&pszError), 256, NULL))
 			{
 				strError = pszError;
 				::LocalFree(pszError);
 
-				return ERRORCODE_SUCCESS;
+				return ERROR_SUCCESS;
 			}
 			else
-			{
-				DWORD dwSaved = ::GetLastError();
-				char szError[64];
-
-				sprintf(szError, "Unknown Error (%u)", dwError);
-				strError = szError;
-
-				::SetLastError(dwSaved);
-
-				return ERRORCODE_WINDOWS_ERROR;
-			}
+				return ::GetLastError();
 		}
 
-		ERRORCODE WINAPI GetLastError(std::wstring& strError, DWORD dwError) throw()
+		DWORD WINAPI GetLastError(std::wstring& strError, DWORD dwError) throw()
 		{
 			wchar_t *pszError;
 
+			// Parameter Check
 			if (!&strError)
-				return ERRORCODE_INVALID_PARAMETER;
+				return ERROR_INVALID_PARAMETER;
 
 			if (::FormatMessageW(FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dwError, 0, reinterpret_cast<wchar_t *>(&pszError), 256, NULL))
 			{
 				strError = pszError;
 				::LocalFree(pszError);
 
-				return ERRORCODE_SUCCESS;
+				return ERROR_SUCCESS;
 			}
 			else
-			{
-				DWORD dwSaved = ::GetLastError();
-				wchar_t szError[64];
-
-				swprintf(szError, sizeof(szError) - 1, L"Unknown Error (%u)", dwError);
-				strError = szError;
-
-				::SetLastError(dwSaved);
-
-				return ERRORCODE_WINDOWS_ERROR;
-			}
+				return ::GetLastError();
 		}
 	}
 
