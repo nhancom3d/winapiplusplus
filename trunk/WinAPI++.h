@@ -29,6 +29,8 @@
 #define WINAPIPP_API __declspec(dllimport)
 #endif
 
+#include <string>
+
 namespace WinApiPP
 {
 	// WinAPI++ Error Code
@@ -53,8 +55,8 @@ namespace WinApiPP
 	namespace KERNEL32
 	{
 		// Declaration Function
-		WINAPIPP_API ERRORCODE WINAPI GetLastError(std::string& strError, DWORD dwError = ::GetLastError()) throw();
-		WINAPIPP_API ERRORCODE WINAPI GetLastError(std::wstring& strError, DWORD dwError = ::GetLastError()) throw();
+		WINAPIPP_API DWORD WINAPI GetLastError(std::string& strError, DWORD dwError = ::GetLastError()) throw();
+		WINAPIPP_API DWORD WINAPI GetLastError(std::wstring& strError, DWORD dwError = ::GetLastError()) throw();
 	}
 
 	namespace USER32
